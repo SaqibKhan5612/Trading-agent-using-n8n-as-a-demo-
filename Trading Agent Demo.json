@@ -1,0 +1,202 @@
+{
+  "name": "Trading Agent Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "={{$json.symbol}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6f78c9de-47d3-493c-9a2c-c2e0b546f69f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fromEmail": "saqibinzergi@gmail.com",
+        "toEmail": "saqibinzergi@gmail.com",
+        "subject": "=Trading Alert: {{$json.symbol}}",
+        "html": "=Price: {{$json.price}}\nSignal: {{$json.price > 50000 ? \"SELL\" : $json.price < 30000 ? \"BUY\" : \"HOLD\"}}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "211be7a6-8e10-40d6-8e65-e13421c943a9",
+      "name": "Send an Email",
+      "webhookId": "7a9e6187-48d2-46e1-8b59-02669d4cd19e",
+      "credentials": {
+        "smtp": {
+          "id": "n9Fv0UeoJmvCcW5J",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1a7Wl0e0bs8oFHzmisxYNznOvqBSe22l9KTk6MigReBY",
+          "mode": "list",
+          "cachedResultName": "Trading-Agent-Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a7Wl0e0bs8oFHzmisxYNznOvqBSe22l9KTk6MigReBY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a7Wl0e0bs8oFHzmisxYNznOvqBSe22l9KTk6MigReBY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "symbol": "={{$node[\"HTTP Request\"].json[\"symbol\"]}}",
+            "price": "={{$node[\"HTTP Request\"].json[\"price\"]}}",
+            "signal": "={{$node[\"HTTP Request\"].json[\"price\"] > 50000 ? \"SELL\" : $node[\"HTTP Request\"].json[\"price\"] < 30000 ? \"BUY\" : \"HOLD\"}}",
+            "time": "={{$now.toLocal().toFormat(\"h.mm a 'at' dd/MM/yyyy\")}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "symbol",
+              "displayName": "symbol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "signal",
+              "displayName": "signal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "ac5f6c45-90b5-443c-bdc4-ce91d6f78340",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YmnVcSH8HvUvslRU",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7d57dee9-31aa-4419-b5b7-fa0b1a14fbed",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "161c4442-c5b4-4054-9919-3d1e88323491",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "79e38e425cda2857bf5409992ca619527b142f0b597dff7b681769a4c8cdc305"
+  },
+  "id": "ZywsyY1qVHxWpFSu",
+  "tags": []
+}
